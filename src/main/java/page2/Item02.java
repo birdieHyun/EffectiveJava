@@ -1,4 +1,4 @@
-package page1;
+package page2;
 
 public class Item02 {
 

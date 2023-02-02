@@ -1,4 +1,6 @@
-package page1;
+package page2;
+
+// 이 부분에 대해서 더 찾아볼 필요가 있다.
 
 public class Item01 {
 
@@ -25,7 +27,7 @@ public class Item01 {
     }
 
     // 그래서 정적 팩터리 메서드를 고려해야 한다.
-    public Item01 makeUrgentOrder(String order, boolean urgent) {
+    public static Item01 makeUrgentOrder(String order, boolean urgent) {
         Item01 itemOne = new Item01();
 
         itemOne.order = order;
@@ -34,10 +36,10 @@ public class Item01 {
         return itemOne;
     }
 
-    public Item01 makeCommonOrder(String order, boolean urgent) {
+    public static Item01 makeCommonOrder(String order, boolean urgent) {
         Item01 itemOne = new Item01();
         itemOne.order = order;
-        itemOne.common = common;
+//        itemOne.common = common;
 
         return itemOne;
     }

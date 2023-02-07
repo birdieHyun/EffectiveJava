@@ -1,4 +1,4 @@
-package page2;
+package chapter2;
 
 // 이 부분에 대해서 더 찾아볼 필요가 있다.
 

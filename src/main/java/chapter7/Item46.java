@@ -1,4 +1,4 @@
-package page7;
+package chapter7;
 
 public class Item46 {
 

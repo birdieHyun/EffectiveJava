@@ -135,10 +135,10 @@ ex) int 를 받는 Predicate = IntPredicate
 
 스트림 API 는 다재다능하여 사실상 어떠한 계산이라도 해낼 수 있다. 하지만 할 수 있다는 뜻히지, 해야한다는 뜻히 아니다.  
 스트림을 제대로 사용하면 프로그램이 짧고 깔끔해지지만, 잘못 사용하면 읽기 어렵고 유지보수도 힘들어진다.  
-스트림을 언제 써야 하는지 규정하는 확고부동한 규칙은 없지만, 참고할 만한 노하우는 있다.  
-  
+스트림을 언제 써야 하는지 규정하는 확고부동한 규칙은 없지만, 참고할 만한 노하우는 있다.
+
 ```java
-package page7;
+package chapter7;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -160,11 +160,11 @@ public class Item45 {
         }
         for (Set<String> group : groups.values()) {
             if (group.size() >= minGroupSize) {
-                System.out.println(group.size() + " : " +  group);
+                System.out.println(group.size() + " : " + group);
             }
         }
     }
-    
+
     private static String alphabetize(String s) {
         char[] a = s.toCharArray();
         Arrays.sort(a);
@@ -240,3 +240,49 @@ char 값을 처리할 땐 스트림을 삼가는 편이 낫다.
 > 가장 좋은 작업은 두개를 적절히 섞는 것이다.  
 > **스트림과 반복문 중 어느쪽이 나은지 확신하기 어렵다면 둘 다 해보고 더 나은 쪽은 택하라**  
   
+  
+### 아이템 46. 스트림에서는 부작용 없는 함수를 사용하라 
+  
+스트림 동작이 성공하더라도 안와닿을 수 있다.  
+스트림은 그저 또하나의 API가 아닌, 함수형 프로그래밍에 기초한 패러다임이기 때문이다.  
+스트림이 제공하는 표현력, 속도, 병렬성을 얻으려면 API는 말할것도 없고, 함수형 패러다임까지 함께 받아들여야 한다.  
+  
+함수형 프로그래밍은 순수함수만으로 사용  
+  
+스트림 잘못 사용하는 예
+
+```java
+import java.util.HashMap;
+
+public class Stream {
+    public static void main(String[] args) {
+
+        Map<String, Long> freq = new HashMap<>();
+        try(Stream<String> words = new Scanner(file).tokens()) {
+            words.forEach(word -> {
+                freq.merge(word.toLowerCas(), 1L, Long::sum);
+            });
+        }
+    }
+}
+```  
+스트림, 람다, 메서드 참조를 사용했고, 결과도 올바르지만  
+**절대 스트림 코드라고 할 수 없다.**  
+스트림 코드를 가장한 반복적 코드다.  
+작업이 종단인 forEach에서 일어나는데, 이때 외부 상태를 수정하는 람다를 실행하면서 문제가 생긴다.  
+forEach가 그저 스트림이 수행한 연산 결과를 보여주는 일 이상을 하는 것은 지양하자.   
+**forEach 연산은 스트림 계산 결과를 보고할 때만 사용하고, 계산하는데는 쓰지 말자**  
+물론 가끔은 스트림 계산 결과를 기존 컬렉션에 추가하는 등의 다른 용도로도 쓸 수 있다.   
+  
+> 핵심 정리  
+> 스트림 파이프라인 프로그래밍의 핵심은 부작용 없는 함수 객체에 있다.   
+> 스트림뿐 아니라 스트림 관련 객체에 건네지는 모든 함수 객체가 부작용이 없어야 한다.  
+> 종단 연산 중 forEach는 스트림이 수행한 계산 결과를 보고할 때만 이용해야 한다.  
+> 계산 자체에는 이용하지 말자.  
+> 스트림을 올바로 사용하려면 수집기를 잘 알아둬야 한다.  
+> 가장 중요한 수집기 팩터리는 toList, toSet. toMap, groupingBy, joining 이다.  
+  
+  
+### 아이템 47. 반환 타입으로는 스트림보다 컬렉션이 낫다.    
+진짜 이번 장은 하나도 모르겠다.... 더 열심히 공부해오자 
+ 

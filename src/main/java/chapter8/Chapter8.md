@@ -344,3 +344,61 @@ EnumSet의 정적 팩터리도 이 기법을 사용해 열거 타입 집합 생�
 > 메서드를 정의할 때 필수 매개변수는 가변인수 앞에 두고, 가변 인수를 사용할 때는 성능 문제까지 고려하자.  
   
 ### 아이템 54. null 이 아닌, 빈 컬렉션이나 배열을 반환하라  
+다음은 주변에서 흔히 볼 수 있는 메서드이다.  - **절대 따라하지 말것!!**  
+```java
+public class Item53 {
+    private final List<Cheese> cheeseList=...;
+
+    /**
+     * @return 매장 안의 모든 치즈 목록을 반환한다. 
+     * 단, 재고가 하나도 없다면 null을 반환한다. 
+     */
+    public List<Cheese> getCheeses() {
+        return cheeseList.isEmpty() ? null
+                : new ArrayList<>(cheeseList);
+    }
+}
+```  
+사실 재고가 없다고 특별한 취급을 할 필요는 없다.   
+그러나 이렇게 null을 반환하면 null을 처리하는 추가 코드를 작성해야 한다.  
+그러므로 null이 아닌 빈 컬렉션은 반환하도록 해야한다.  
+  
+떄로는 빈 컨테이너를 반환하는데 비요이 드니 null을 반환해야 한다고 주장하는 쪽이 있다.  
+그러나 이는 틀린 주장이다.  
+1. 성능 분석 결과 이 할당이 성능 저하의 주범이라고 확인되지 않는 한, 이정도의 성능 차이는 신경 쓸 수준이 못된다.  
+2. 빈 컬렉션과 배열은 굳이 새로 할당하지 않고도 반환할 수 있다. 
+   - 다음과 같이 빈 컬렉션을 반환할 수 있다.
+
+```java
+public class Item54 {
+    public List<Cheese> getCheeses() {
+        return new ArrayList<>(cheeseInStock);
+    }
+}
+```  
+  
+배열을 사용할 때도 마찬가지이다.  
+크기가 0인 배열을 반환하면 된다.  
+```java
+public class Item54 {
+    public Cheese[] getCheese() {
+        return cheesesInStock.toArray(new Cheese[0]);
+    }
+}
+```  
+이 방식이 성능을 떨어뜨릴 것 같다면, 길이가 0인 배열을 미리 선언하는 것으로 해결할 수 있다.  
+  
+```java
+public class Item54 {
+    private static final Cheese[] EMPTY_CHEESE_ARRAY = new Cheese[0];
+    
+    public Cheese[] getCheeses() {
+        return cheesesInStock.toArray(EMPTY_CHEESE_ARRAY);
+    }
+}
+```  
+그러나 단순히 성능을 개선할 목적이면 toArray에 넘기는 배열을 미리 생성하지 말아아, 오히려 성능이 떨어진다는 연구결과도 있다.  
+  
+> 핵심 정리  
+> **null 이 아닌, 빈 배열이나 컬렉션을 반환하라. null을 반환하는 API는 사용하기 어렵고, 오류 처리 코드도 늘어난다.  
+> 그렇다고 성능이 좋은 것도 아니다.  

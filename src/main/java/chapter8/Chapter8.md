@@ -401,4 +401,132 @@ public class Item54 {
   
 > 핵심 정리  
 > **null 이 아닌, 빈 배열이나 컬렉션을 반환하라. null을 반환하는 API는 사용하기 어렵고, 오류 처리 코드도 늘어난다.  
-> 그렇다고 성능이 좋은 것도 아니다.  
+> 그렇다고 성능이 좋은 것도 아니다.    
+  
+### 아이템 55. 옵셔널 반환은 신중히 하라   
+자바 8 이전에는 메서드가 특정 조건에서 값을 반환할 수 없을 때 취할 수 있는 선택지가 두 가지가 있었다.  
+- 예외를 던진다. 
+  - 예외는 진짜 필요한 상황에서만 해야한다. 
+- null을 반환한다.  
+  - null 처리 추가 코드를 작성해야 한다.
+  
+  
+자바 버전이 8로 올라가면서 또 하나의 선택지가 생겼다. 
+- Optional<T>  
+  
+Optional<T> 는 null 이 아닌 T 타입 참조를 하나 담거나, 혹은 아무것도 담지 않을 수 있다.  
+아무것도 담지 않은 옵셔널은 비었다 라고 표현한다.  
+옵셔널은 원소를 최대 1개 가질 수 있는 '불변'컬렉션이다.  
+보통은 T를 반환해야 하지만, 아무것도 반환하지 않아야 할 때 T 대신 Optional<T>를 반환하도록 선언하면 된다.  
+옵셔널을 반환하면 예외를 던지는것 보다 유연성이 높고, 사용하기 쉬우며, null을 반환할때보다 오류 가능성이 작다.  
+
+컬렉션에서 최댓값을 구한다 (컬렉션이 비었으면 예외를 던진다.)
+
+```java
+import java.util.Objects;
+
+public class Item55 {
+    public statkc<E extends Comparable<E>> E
+
+    max(Collection<E> c) {
+        if (c.isEmpty()) {
+            throw new IllegalArgumentException("빈 컬렉션")
+        }
+        E result = null;
+        for (E e : c) {
+            if (result == null || e.compareTo(result) > 0) {
+                result = Objects.requireNonNullElse(e);
+            }
+        }
+        return result;
+    }
+}
+```
+이 메서드에 빈 컬렉션을 건내면 IllegalArgumentException을 던진다. 
+Optional로 반환하도록 변경해보자.
+
+```java
+import java.util.Optional;
+
+public class Item55 {
+    public static <E extends Comparable<E>>
+    Optional<E> max(Comllection<E> c) {
+        if (c.isEmpty()) {
+            return Optional.empty();
+        }
+        E result = null;
+        for(E e : c) {
+            if (result == null || e.compareTo(result) > 0) {
+                result = Object.requireNoneNull(e);
+            }
+            return Optional.of(result);
+        }
+    }
+}
+```
+보다시피 Optional로 반환하는 것은 어렵지 않다.  
+적절한 정적 팩터리를 사용해 옵셔널 생성하기만 하면 된다.  
+  
+**다만 Optional을 반환하는 메서드에는 절대 null을 반환하면 안된다.** 
+-> 옵셔널을 도입한 취지를 완전히 무시하는 행위다.  
+  
+스트림의 종단 연산중 상당수가 옵셔널을 반환한다.   
+앞의 max 메서드를 스트림 버전으로 바꾼다면 Stream의 max 연산이 우리에게 필요한 옵셔널을 생성해줄 것이다.
+
+```java
+import java.util.Comparator;
+
+public class Item55 {
+    public static <E extends Comparable<E>> Optional<E> max(Collection<E> c) {
+        return c.stream().max(Comparator.naturalOrder());
+    }
+}
+```
+    
+그렇다면 예외를 던지는 대신 옵셔널 반환을 선택해야 하는 기준은?  
+**옵셔널은 검사 예외와 취지가 비슷하다.**  
+반환값이 없을 수도 있다고 API 사용자에게 명확히 알려주는 역할을 한다.  
+  
+메서드가 옵셔널을 반환한다면 클라이언트는 값을 받지 못했을 때 취할 행동을 선택해야 한다.  
+그중 하나는 기본값을 설정하는 방법이다.  
+  
+혹은 상황에 맞는 예외를 던진다.  
+  
+여전히 적합한 메서드를 찾지 못했다면 isPresent 메서드를 살펴보자.  
+안전밸브 역할의 메서드로, 옵셔널이 채워져 있으면 true, 비워져 있으면 false를 반환한다.  
+  
+이 메서드는 원하는 모든 작업을 수행할 수 있지만 신중히 사용해야 한다.  
+앞에 언급한. filter, map, flatMap, ifPresent 등으로 대체할 수 있고, 더 명확하고 짭은 코드가 될것이다.  
+  
+반환값으로 옵셔널을 사용한다고 해서 무조건 득이 되는 것은 아니다.  
+**컬렉션, 스트림, 배열, 옵셔널 같은 컨테이너 타입은 옵셔널로 감싸면 안된다.** 
+빈 Optional<List<T>>를 반환하는 것보다, 빈 List<T>를 반환하는 것이 더 좋다.  
+  
+그렇다면 언제 Optional로 반환해야 할까?  
+**결과가 없을 수 있으며, 클라이언트가 이 상황을 특별하게 처리해야 한다면 Optional<T> 를 반환한다.**  
+Optional을 사용하는 것은 한단계 싸는 것이므로, 성능이 중요한 상황에서 Optional은 맞지 않을 수 있다.  
+  
+박싱된 기본 타입을 Optional로 한번 더 박싱을 하게 되면, 기본타입보다 무거워진다.  
+그래서 자바 API 설계자는 OptionalInt, OptionalLong, OptionalDouble을 전부했다.  
+이 옵셔널들도 Optional<T> 가 제공하는 메서드들을 거의 다 제공한다.  
+이렇게 대체재까지 있으니, **박싱된 기본 타입을 담은 옵셔널을 반환하는 일은 없도록 하자**  
+단 덜 중요한 기본타입인 Boolean, Byte, Character, Short, Float은 예외일 수 있다.  
+  
+**Optional을 컬렉션의 키, 값, 원소나 배열의 원소로 사용하는게 적절한 상황은 거의 없다** 
+Map이 Optional이라고 생각해보자.  
+맵 안에 키가 없다는 사실을 나타내는 방법이 두가지가 된다.  
+하나는 키 자체가 없다는 것이고,  
+하나는 키의 값이 비어있다는 것이다.  
+쓸데없이 복잡성만 높여서, 혼란과 오류 가능성을 높인다.  
+  
+> 핵심 정리  
+> 값을 반환하지 못할 가능성이 있고, 호출할 때마다 반환값이 없을 가능성을 염두에 둬야 하는 메서드라면, 옵셔널을 반환해야 할 상황일 수 있다.  
+> 하지만 옵셔널 반환에는 성능 저하가 뒤따르니, 성능에 민감한 메서드라면 null을 반환하거나 예외를 던지는 편이 나을 수 있다.  
+> 그리고 옵셔널을 반환값 이외의 용도로 쓰는 경우는 매우 드물다.  
+
+
+  
+### 아이템 56. 공개된 API 요소에는 항상 문서화 주석을 작성하라  
+API를 쓸모 있게 하려면 잘 작성된 문서도 곁들여야 한다.  
+- 아직 할 단계가 아닌것 같다. 
+- 더 공부해서 2회독차에 다시 제대로 정리해보자.  

@@ -186,7 +186,7 @@ public enum TemperatureScale {FAHRENHEIT, CELSIUS}
 Thermometer.newInstance(TemperatureScale.CELSIUS)가 하는 일을 훨씬 명확이 알려준다.  
 나중에 다른 온도를 추가해야 한다면, 열거타입에 온도를 추가해주기만 하면 된다.  
   
-### 아이템 52. 다중정의는 신중히 사용하라 (오버로딩)
+### 아이템 52. 다중정의는 신중히 사용하라 (오버로딩)딩
 다음은 컬렉션을 집합, 리스트, 그 외로 구분하고자 만든 프로그램이다.   
   
 출력 결과는 그외 만 세번 출력한다.  
